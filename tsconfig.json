@@ -9,6 +9,7 @@
     "erasableSyntaxOnly": true,
     "rewriteRelativeImportExtensions": true,
     "isolatedModules": true,
+    "resolveJsonModule": true,
 
     "strict": true,
     "noUncheckedIndexedAccess": true,

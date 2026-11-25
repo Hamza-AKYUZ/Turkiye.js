@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Türkiye.js örnek form</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: system-ui, sans-serif;
+      }
+      body {
+        max-width: 40rem;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        line-height: 1.5;
+      }
+      label {
+        display: grid;
+        gap: 0.25rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+      }
+      input {
+        font: inherit;
+        font-weight: 400;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #8888;
+        border-radius: 0.375rem;
+      }
+      input[data-complete="true"] {
+        border-color: #2a7d46;
+      }
+      small {
+        font-weight: 400;
+        color: #6b7280;
+        min-height: 1.25rem;
+      }
+      footer {
+        margin-top: 2rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Türkiye.js örnek form</h1>
+    <p>Alanlar yazarken biçimlenir. Altta temiz değer ve doğrulama sonucu görünür.</p>
+
+    <form id="form" novalidate>
+      <label>TC Kimlik No <input name="tckn" inputmode="numeric" autocomplete="off" /><small></small></label>
+      <label>IBAN <input name="iban" autocomplete="off" spellcheck="false" /><small></small></label>
+      <label>Telefon <input name="phone" type="tel" autocomplete="tel" /><small></small></label>
+      <label>Kart numarası <input name="card" inputmode="numeric" autocomplete="cc-number" /><small></small></label>
+      <label>Plaka <input name="plate" autocomplete="off" spellcheck="false" /><small></small></label>
+      <label>Tutar <input name="money" inputmode="decimal" autocomplete="off" /><small></small></label>
+    </form>
+
+    <p id="summary"></p>
+
+    <footer>Türkiye.js bir <a href="https://akysoft.com">AkySoft</a> ürünüdür.</footer>
+
+    <script type="module">
+      import { attachMask, createMask } from "../../dist/esm/mask/index.js";
+      import * as money from "../../dist/esm/money/index.js";
+
+      const form = document.querySelector("#form");
+      const masks = {};
+      const detachers = [];
+
+      for (const input of form.querySelectorAll("input")) {
+        const mask = createMask(input.name);
+        const note = input.nextElementSibling;
+        masks[input.name] = mask;
+        detachers.push(attachMask(input, mask));
+        // Not alanı textContent ile yazılır; kullanıcı girdisi HTML olarak yorumlanmaz.
+        input.addEventListener("input", () => {
+          const state = mask.state;
+          input.dataset.complete = String(state.complete);
+          note.textContent = state.raw === "" ? "" : `${state.raw} ${state.complete ? "(geçerli)" : ""}`;
+          update();
+        });
+      }
+
+      function update() {
+        const amount = masks.money.toNumber();
+        document.querySelector("#summary").textContent =
+          amount === null ? "" : `${money.format(amount, { symbol: "TL" })} (yalnız ${money.toWords(amount)})`;
+      }
+
+      // Sayfadan ayrılırken dinleyiciler kaldırılır.
+      window.addEventListener("pagehide", () => detachers.forEach((detach) => detach()));
+    </script>
+  </body>
+</html>

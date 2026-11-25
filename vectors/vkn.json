@@ -1,0 +1,31 @@
+{
+  "description": "Vergi Kimlik No",
+  "valid": [
+    {
+      "input": "1234567890",
+      "value": "1234567890"
+    },
+    {
+      "input": "123 456 78 90",
+      "value": "1234567890"
+    }
+  ],
+  "invalid": [
+    {
+      "input": "",
+      "code": "EMPTY"
+    },
+    {
+      "input": "123456789a",
+      "code": "INVALID_CHARS"
+    },
+    {
+      "input": "123456789",
+      "code": "LENGTH"
+    },
+    {
+      "input": "1234567891",
+      "code": "CHECKSUM"
+    }
+  ]
+}

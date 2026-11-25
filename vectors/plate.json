@@ -1,0 +1,47 @@
+{
+  "description": "Araç plakası",
+  "valid": [
+    {
+      "input": "34 ABC 123",
+      "value": "34ABC123"
+    },
+    {
+      "input": "06 A 1234",
+      "value": "06A1234"
+    },
+    {
+      "input": "35 B 12345",
+      "value": "35B12345"
+    },
+    {
+      "input": "01AB123",
+      "value": "01AB123"
+    }
+  ],
+  "invalid": [
+    {
+      "input": "",
+      "code": "EMPTY"
+    },
+    {
+      "input": "34 ABC 1234",
+      "code": "FORMAT"
+    },
+    {
+      "input": "82 ABC 12",
+      "code": "RANGE"
+    },
+    {
+      "input": "00 A 1234",
+      "code": "RANGE"
+    },
+    {
+      "input": "34 QWX 12",
+      "code": "INVALID_CHARS"
+    },
+    {
+      "input": "34-ABÇ-12",
+      "code": "INVALID_CHARS"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "description": "Telefon numarası; geçerli değer E.164 biçimindedir",
+  "valid": [
+    {
+      "input": "05321234567",
+      "value": "+905321234567"
+    },
+    {
+      "input": "+90 532 123 45 67",
+      "value": "+905321234567"
+    },
+    {
+      "input": "0212 123 45 67",
+      "value": "+902121234567"
+    },
+    {
+      "input": "4441444",
+      "value": "+904441444"
+    },
+    {
+      "input": "08502221111",
+      "value": "+908502221111"
+    }
+  ],
+  "invalid": [
+    {
+      "input": "",
+      "code": "EMPTY"
+    },
+    {
+      "input": "+1 202 555 0100",
+      "code": "COUNTRY"
+    },
+    {
+      "input": "0532123456",
+      "code": "FORMAT"
+    },
+    {
+      "input": "01231234567",
+      "code": "FORMAT"
+    }
+  ]
+}

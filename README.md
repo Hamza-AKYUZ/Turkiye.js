@@ -2,12 +2,14 @@
 
 Türkiye'ye özgü doğrulama, formatlama ve metin araçları. TCKN, VKN, IBAN, telefon, kart, para, adres, tarih ve daha fazlası tek pakette.
 
+Türkiye.js bir [AkySoft](https://akysoft.com) ürünüdür.
+
 - **Sıfır bağımlılık:** Pakette hiçbir dış bağımlılık yok.
 - **Her yerde çalışır:** Tarayıcı, React, Vue, Svelte, Node, Bun, Deno, Next.js, Edge, React Native.
 - **TypeScript:** Tipler paketle gelir, doğrulanmış değerler tip seviyesinde işaretlenir.
 - **Tree-shaking:** Yalnız kullandığın modül bundle'a girer.
 
-> **Durum:** Geliştirme aşamasında, henüz yayınlanmadı. Hazır modüller: `tckn`, `vkn`, `iban`, `phone`, `card`, `text`, `money`, `address`, `date`, `company`, `vehicle`, `mask`, `react`. Plan için [SPEC.md](./SPEC.md) dosyasına bakın.
+> **Sürüm 1.0.0.** Tüm fonksiyonlar için [doküman](./docs/README.md), çalışan örnekler için [examples](./examples/README.md) klasörüne bakın.
 
 Paket yalnız kurala dayalı hesaplar ve kalıcı veriler içerir. Zamanla değişen listeler (banka adları, ilçe ve mahalle, vergi dairesi, dini bayram tarihleri) pakette yoktur; gerektiğinde uygulama kendi verisini verir.
 
@@ -63,6 +65,8 @@ text.suffix("kitap", "accusative");          // "kitabı"
 Ünsüz yumuşaması ve kısaltma okunuşu kelimenin yapısından tahmin edilir. Kurala uymayan kelimelerde seçenekle düzeltilebilir:
 
 ```ts
+import { text } from "turkiye.js";
+
 text.suffix("saat", "accusative", { harmony: "front" }); // "saati"
 text.suffix("kanat", "accusative", { soften: true });    // "kanadı"
 text.suffix("TOGG", "dative", { read: "word" });         // "TOGG'a"
@@ -101,20 +105,24 @@ address.isValidPostalCode("34710", 34);      // true
 import { date } from "turkiye.js";
 
 date.format("2026-11-25");                   // "25 Kasım 2026 Çarşamba"
-date.format(new Date(), "DD.MM.YYYY HH:mm"); // "25.11.2026 14:30"
-date.relative(fiveMinutesAgo);               // "5 dakika önce"
+date.format("2026-11-25T14:30", "DD.MM.YYYY HH:mm"); // "25.11.2026 14:30"
+date.relative("2026-11-25T13:55", "2026-11-25T14:00"); // "5 dakika önce"
 date.isBusinessDay("2026-10-29");            // false (Cumhuriyet Bayramı)
-date.addBusinessDays("2026-11-27", 1);       // 30 Kasım 2026 Pazartesi
+date.format(date.addBusinessDays("2026-11-27", 1)); // "30 Kasım 2026 Pazartesi"
 date.businessDaysBetween("2026-11-27", "2026-12-04"); // 5
 ```
+
+`relative` ikinci değer verilmezse şu ana göre hesaplar.
 
 Tarih metni ISO 8601 biçiminde verilir: `"2026-11-25"` ya da `"2026-11-25T14:30"`. `"25.11.2026"` gibi biçimler tarayıcılar arasında farklı yorumlandığı için `FORMAT` hatası verir.
 
 `holidays(year)` yalnız kanunla belirlenmiş sabit tarihli tatilleri döner. Dini bayramlar her yıl değiştiği için iş günü hesabına uygulama tarafından eklenir:
 
 ```ts
+import { date } from "turkiye.js";
+
 const bayram = ["2026-03-20", "2026-03-21", "2026-03-22"];
-date.addBusinessDays("2026-03-19", 2, { holidays: bayram }); // 24 Mart 2026
+date.format(date.addBusinessDays("2026-03-19", 2, { holidays: bayram })); // "24 Mart 2026 Salı"
 date.isBusinessDay("2026-11-28", { weekend: [0] });           // true (yalnız Pazar tatil)
 ```
 
@@ -152,7 +160,7 @@ Maskeler: `TcknMask`, `VknMask`, `IbanMask`, `PhoneMask`, `CardMask`, `PlateMask
 
 Framework kullanmayan sayfalarda `attachMask` kullanılır. Dönen fonksiyon dinleyiciyi kaldırır:
 
-```ts
+```ts nocheck
 import { attachMask, PhoneMask } from "turkiye.js/mask";
 
 const detach = attachMask(document.querySelector("#telefon"), new PhoneMask());
@@ -224,20 +232,21 @@ const form = z.object({ tckn: z.string().pipe(tckn.schema()) });
 ### Sonuç ve hatalar
 
 ```ts
-import { TurkiyeError } from "turkiye.js";
+import { tckn, TurkiyeError } from "turkiye.js";
 
-const result = tckn.validate(input);
+const result = tckn.validate("10000000145");
 if (result.ok) {
-  save(result.value);
+  console.log("Geçerli:", result.value);
 } else {
-  console.log(result.code);    // "CHECKSUM"
-  console.log(result.message); // "TCKN kontrol basamağı hatalı"
+  result.code;    // "CHECKSUM"
+  result.message; // "TCKN kontrol basamağı hatalı"
 }
 
 try {
-  tckn.parse(input);
+  tckn.parse("123");
 } catch (error) {
-  if (error instanceof TurkiyeError) console.log(error.code);
+  error instanceof TurkiyeError; // true
+  error.code;                    // "LENGTH"
 }
 ```
 
@@ -262,7 +271,7 @@ Doğrulama fonksiyonları hiçbir girdide hata fırlatmaz. `text` fonksiyonları
 
 Paketin ESM ve CommonJS kopyaları aynı uygulamada birlikte yüklenirse `instanceof TurkiyeError` ve `setMessages` ayarı iki kopyada da geçerlidir.
 
-Ayrıntılar: [SPEC.md](./SPEC.md)
+Ayrıntılar: [doküman](./docs/README.md), tasarım kararları: [SPEC.md](./SPEC.md)
 
 ## Geliştirme
 
@@ -270,7 +279,7 @@ Gereken: Node 22.6 veya üstü. Tek geliştirme bağımlılığı `typescript`.
 
 ```sh
 npm install
-npm run check   # tip kontrolü, test + coverage, build, boyut, paket ve smoke testleri
+npm run check   # tip kontrolü, test + coverage, build, boyut, paket, smoke, doküman örnekleri
 ```
 
 | Komut | İşi |
@@ -282,6 +291,9 @@ npm run check   # tip kontrolü, test + coverage, build, boyut, paket ve smoke t
 | `npm run size` | Gzip boyut bütçesini kontrol eder |
 | `npm run check:package` | exports, ESM/CJS eşleşmesi, kullanıcı tipleri ve paket içeriği |
 | `npm run smoke` | Derlenmiş paketi ESM ve CJS olarak yükler |
+| `npm run check:docs` | README ve docs/ içindeki örnek sonuçlarını derlenmiş pakette doğrular |
+| `npm run example` | Node örneğini çalıştırır |
+| `npm run serve` | Tarayıcı örneğini http://127.0.0.1:5173 adresinde açar |
 
 ---
 
@@ -289,8 +301,12 @@ npm run check   # tip kontrolü, test + coverage, build, boyut, paket ve smoke t
 
 Turkiye.js provides validation, formatting and text utilities for Türkiye: national ID (TCKN), tax ID (VKN), IBAN, phone, card, money, address, date and more. Zero dependencies, fully typed, tree-shakeable, works in every JavaScript runtime.
 
-**Status:** In development, not yet published.
+**Version 1.0.0.** Full documentation (Turkish): [docs](./docs/README.md).
+
+Turkiye.js is an [AkySoft](https://akysoft.com) product.
 
 ## Lisans
 
 [MIT](./LICENSE) © 2026 [Hamza Akyüz](https://github.com/Hamza-AKYUZ)
+
+Türkiye.js, [AkySoft](https://akysoft.com) tarafından geliştirilen açık kaynaklı bir araçtır.

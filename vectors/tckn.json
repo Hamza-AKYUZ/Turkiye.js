@@ -1,0 +1,43 @@
+{
+  "description": "TC Kimlik No ve Yabancı Kimlik No",
+  "valid": [
+    {
+      "input": "10000000146",
+      "value": "10000000146"
+    },
+    {
+      "input": "100 000 001 46",
+      "value": "10000000146"
+    },
+    {
+      "input": "99999999990",
+      "value": "99999999990"
+    }
+  ],
+  "invalid": [
+    {
+      "input": "",
+      "code": "EMPTY"
+    },
+    {
+      "input": "1000000014a",
+      "code": "INVALID_CHARS"
+    },
+    {
+      "input": "1000000014",
+      "code": "LENGTH"
+    },
+    {
+      "input": "00000000146",
+      "code": "FORMAT"
+    },
+    {
+      "input": "10000000145",
+      "code": "CHECKSUM"
+    },
+    {
+      "input": "12345678901",
+      "code": "CHECKSUM"
+    }
+  ]
+}

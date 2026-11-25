@@ -1,0 +1,31 @@
+{
+  "description": "Şasi numarası; kontrol basamağı denetlenmez",
+  "valid": [
+    {
+      "input": "1M8GDM9AXKP042788",
+      "value": "1M8GDM9AXKP042788"
+    },
+    {
+      "input": "WVWZZZ1JZXW000001",
+      "value": "WVWZZZ1JZXW000001"
+    }
+  ],
+  "invalid": [
+    {
+      "input": "",
+      "code": "EMPTY"
+    },
+    {
+      "input": "1M8GDM9AXKP04278",
+      "code": "LENGTH"
+    },
+    {
+      "input": "1M8GDM9AXKP04278I",
+      "code": "INVALID_CHARS"
+    },
+    {
+      "input": "1M8GDM9AXKP0427!8",
+      "code": "INVALID_CHARS"
+    }
+  ]
+}

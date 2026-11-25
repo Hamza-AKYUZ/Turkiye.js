@@ -1,0 +1,27 @@
+{
+  "description": "MERSİS numarası; yalnız biçim",
+  "valid": [
+    {
+      "input": "0123456789012345",
+      "value": "0123456789012345"
+    },
+    {
+      "input": "0123-4567-8901-2345",
+      "value": "0123456789012345"
+    }
+  ],
+  "invalid": [
+    {
+      "input": "",
+      "code": "EMPTY"
+    },
+    {
+      "input": "012345678901234",
+      "code": "LENGTH"
+    },
+    {
+      "input": "012345678901234a",
+      "code": "INVALID_CHARS"
+    }
+  ]
+}

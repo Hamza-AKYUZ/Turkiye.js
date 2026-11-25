@@ -2,7 +2,9 @@
 
 Bu proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
-## [Yayınlanmadı]
+## [1.0.0] - 2026-11-26
+
+İlk kararlı sürüm.
 
 ### Eklendi
 
@@ -22,6 +24,9 @@ Bu proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 - Her modül için `turkiye.js/<modül>` alt yolu.
 - Çekirdek (`core`): `Result` tipi, `ErrorCode` ve `ERROR_CODES`, `TurkiyeError`, `Brand` tipi, `setMessages` ve `resetMessages`, `StandardSchemaV1` arayüzü.
 - Proje altyapısı: ESM + CJS build, `node:test` testleri, boyut sınırı, paket kontrolleri ve CI.
+- `docs/` klasöründe her modül için doküman; örnek sonuçları her kontrolde derlenmiş pakette doğrulanır.
+- `examples/` klasöründe Node, saf HTML ve React örnekleri.
+- `vectors/` klasöründe modül başına ortak test vektörleri.
 
 ### Düzeltildi
 

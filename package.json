@@ -1,0 +1,181 @@
+{
+  "name": "turkiye.js",
+  "version": "0.0.0",
+  "description": "Türkiye'ye özgü doğrulama, formatlama ve metin araçları: TCKN, VKN, IBAN, telefon, kart, para, adres, tarih ve daha fazlası. Sıfır bağımlılık.",
+  "keywords": [
+    "turkiye",
+    "turkey",
+    "turkish",
+    "tckn",
+    "vkn",
+    "iban",
+    "validation",
+    "dogrulama",
+    "format",
+    "zero-dependency"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Hamza Akyüz",
+    "url": "https://github.com/Hamza-AKYUZ"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hamza-AKYUZ/Turkiye.js.git"
+  },
+  "homepage": "https://github.com/Hamza-AKYUZ/Turkiye.js#readme",
+  "bugs": {
+    "url": "https://github.com/Hamza-AKYUZ/Turkiye.js/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/cjs/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    },
+    "./tckn": {
+      "import": {
+        "types": "./dist/esm/tckn/index.d.ts",
+        "default": "./dist/esm/tckn/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/tckn/index.d.ts",
+        "default": "./dist/cjs/tckn/index.js"
+      }
+    },
+    "./vkn": {
+      "import": {
+        "types": "./dist/esm/vkn/index.d.ts",
+        "default": "./dist/esm/vkn/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/vkn/index.d.ts",
+        "default": "./dist/cjs/vkn/index.js"
+      }
+    },
+    "./iban": {
+      "import": {
+        "types": "./dist/esm/iban/index.d.ts",
+        "default": "./dist/esm/iban/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/iban/index.d.ts",
+        "default": "./dist/cjs/iban/index.js"
+      }
+    },
+    "./phone": {
+      "import": {
+        "types": "./dist/esm/phone/index.d.ts",
+        "default": "./dist/esm/phone/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/phone/index.d.ts",
+        "default": "./dist/cjs/phone/index.js"
+      }
+    },
+    "./card": {
+      "import": {
+        "types": "./dist/esm/card/index.d.ts",
+        "default": "./dist/esm/card/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/card/index.d.ts",
+        "default": "./dist/cjs/card/index.js"
+      }
+    },
+    "./text": {
+      "import": {
+        "types": "./dist/esm/text/index.d.ts",
+        "default": "./dist/esm/text/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/text/index.d.ts",
+        "default": "./dist/cjs/text/index.js"
+      }
+    },
+    "./money": {
+      "import": {
+        "types": "./dist/esm/money/index.d.ts",
+        "default": "./dist/esm/money/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/money/index.d.ts",
+        "default": "./dist/cjs/money/index.js"
+      }
+    },
+    "./address": {
+      "import": {
+        "types": "./dist/esm/address/index.d.ts",
+        "default": "./dist/esm/address/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/address/index.d.ts",
+        "default": "./dist/cjs/address/index.js"
+      }
+    },
+    "./date": {
+      "import": {
+        "types": "./dist/esm/date/index.d.ts",
+        "default": "./dist/esm/date/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/date/index.d.ts",
+        "default": "./dist/cjs/date/index.js"
+      }
+    },
+    "./company": {
+      "import": {
+        "types": "./dist/esm/company/index.d.ts",
+        "default": "./dist/esm/company/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/company/index.d.ts",
+        "default": "./dist/cjs/company/index.js"
+      }
+    },
+    "./vehicle": {
+      "import": {
+        "types": "./dist/esm/vehicle/index.d.ts",
+        "default": "./dist/esm/vehicle/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/vehicle/index.d.ts",
+        "default": "./dist/cjs/vehicle/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node --experimental-strip-types --no-warnings=ExperimentalWarning --test \"src/**/*.test.ts\"",
+    "test:coverage": "node --experimental-strip-types --no-warnings=ExperimentalWarning --test --experimental-test-coverage --test-coverage-exclude=\"src/**/*.test.ts\" --test-coverage-lines=95 --test-coverage-branches=90 --test-coverage-functions=95 \"src/**/*.test.ts\"",
+    "size": "node scripts/size.mjs",
+    "check:package": "node scripts/check-package.mjs",
+    "smoke": "node scripts/smoke.mjs && node scripts/smoke.cjs",
+    "check": "npm run typecheck && npm run test:coverage && npm run build && npm run size && npm run check:package && npm run smoke",
+    "prepublishOnly": "npm run check"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}

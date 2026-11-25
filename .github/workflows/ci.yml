@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Kontrol (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+
+  compat:
+    name: Uyumluluk (Node ${{ matrix.node }})
+    needs: check
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20]
+        os: [ubuntu-latest]
+        include:
+          - node: 22
+            os: windows-latest
+          - node: 22
+            os: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run smoke
+
+  runtimes:
+    name: Bun ve Deno
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: oven-sh/setup-bun@v2
+      - run: bun scripts/smoke.mjs && bun scripts/smoke.cjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Deno smoke testi
+        run: >-
+          deno eval "import * as m from './dist/esm/index.js';
+          const e = new m.TurkiyeError('LENGTH', 'x');
+          if (!(e instanceof Error) || e.code !== 'LENGTH') throw new Error('Deno smoke başarısız');
+          console.log('Deno smoke testi tamamlandı');"

@@ -105,3 +105,9 @@ describe("vehicle.vin", () => {
     assert.deepEqual(vin.schema()["~standard"].validate(EUROPEAN), { value: EUROPEAN });
   });
 });
+
+describe("vehicle.vin: hatalı seçenek", () => {
+  it("null seçeneği varsayılan kabul eder", () => {
+    assert.equal(vin.isValid("WVWZZZ1JZXW000001", null as never), true);
+  });
+});

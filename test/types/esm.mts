@@ -19,6 +19,7 @@ import {
   company,
   date,
   vehicle,
+  mask,
 } from "turkiye.js";
 import { findProvince, type Province } from "turkiye.js/address";
 import { mersis } from "turkiye.js/company";
@@ -129,3 +130,19 @@ const ibanSchema: StandardSchemaV1<string, Iban> = iban.schema();
 const ok: boolean = isValid("10000000146");
 
 void [code, codes, plain, templates, sameId, wrong, kind, taxKind, bankInfo, parts, formatted, numberType, areaInfo, expiry, cvv, schema, ibanSchema, ok];
+
+import { attachMask, createMask, IbanMask, type MaskableElement, type MaskState, MoneyMask } from "turkiye.js/mask";
+import { type MaskChangeEvent, type UseMaskResult, useMask } from "turkiye.js/react";
+
+const moneyMask: MoneyMask = createMask("money", { decimals: 0 });
+const maskState: MaskState = new IbanMask().input("tr33", 4);
+const typedAmount: number | null = moneyMask.toNumber();
+declare const element: MaskableElement;
+const detach: () => void = attachMask(element, mask.createMask("phone"));
+// @ts-expect-error bilinmeyen maske türü
+createMask("email");
+declare function hook(): UseMaskResult;
+const change: MaskChangeEvent = { target: { value: "1", selectionStart: 1 } };
+hook().inputProps.onChange(change);
+const useMaskRef: typeof useMask = useMask;
+void [maskState, typedAmount, detach, useMaskRef];

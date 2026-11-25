@@ -42,3 +42,13 @@ describe("isErrorCode", () => {
     }
   });
 });
+
+describe("TurkiyeError: paket kopyaları", () => {
+  it("aynı işareti taşıyan başka kopyanın hatasını tanır", () => {
+    const copy = new Error("x") as Error & Record<symbol, unknown>;
+    Object.defineProperty(copy, Symbol.for("turkiye.js.error"), { value: true });
+    assert.ok(copy instanceof TurkiyeError);
+    assert.ok(!(new Error("x") instanceof TurkiyeError));
+    assert.ok(!((null as unknown as object) instanceof TurkiyeError));
+  });
+});

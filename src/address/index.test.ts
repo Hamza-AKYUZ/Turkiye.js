@@ -75,3 +75,10 @@ describe("address.isValidPostalCode", () => {
     assert.equal(address.isValidPostalCode("34710", "olmayan il"), false);
   });
 });
+
+describe("address: hatalı girdi", () => {
+  it("nesne girdide null döner", () => {
+    assert.equal(address.province(Object.create(null) as never), null);
+    assert.equal(address.province({} as never), null);
+  });
+});

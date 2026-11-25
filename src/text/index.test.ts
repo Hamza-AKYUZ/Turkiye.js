@@ -228,3 +228,50 @@ describe("text.suffix", () => {
     assert.equal(text.suffix("brr", "dative", { read: "word" }), "brre");
   });
 });
+
+describe("text: hatalı girdi", () => {
+  const bad = [undefined, null, {}, [], true] as unknown as string[];
+
+  it("metin olmayan girdide hata vermez", () => {
+    for (const value of bad) {
+      assert.equal(text.toUpper(value), "");
+      assert.equal(text.toLower(value), "");
+      assert.equal(text.toTitle(value), "");
+      assert.equal(text.fold(value), "");
+      assert.equal(text.slugify(value), "");
+      assert.equal(text.includes(value, "a"), false);
+      assert.equal(text.compare(value, value), 0);
+      assert.equal(text.suffix(value, "dative"), "");
+    }
+    assert.equal(text.toUpper(5 as unknown as string), "5");
+  });
+
+  it("null seçenek nesnesini varsayılan kabul eder", () => {
+    assert.equal(text.slugify("a b", null as never), "a-b");
+    assert.equal(text.suffix("Ankara", "dative", null as never), "Ankara'ya");
+    assert.equal(text.numberToWords(5, null as never), "beş");
+  });
+
+  it("bilinmeyen hal adında açık hata verir", () => {
+    assert.throws(() => text.suffix("ev", "x" as never), /Bilinmeyen hal adı/);
+  });
+
+  it("sort dizi olmayan girdide TypeError verir, girdi dizisini değiştirmez", () => {
+    assert.throws(() => text.sort(null as never), TypeError);
+    const input = ["b", "a"];
+    text.sort(input);
+    assert.deepEqual(input, ["b", "a"]);
+  });
+
+  it("sort eşit öğelerin sırasını korur ve boş öğelerde hata vermez", () => {
+    const items = [{ n: "a", i: 1 }, { n: "a", i: 2 }, null, { n: "a", i: 3 }];
+    assert.deepEqual(text.sort(items, "n" as never).map((item) => (item as { i: number } | null)?.i ?? 0), [0, 1, 2, 3]);
+  });
+
+  it("büyük dizileri makul sürede sıralar", () => {
+    const list = Array.from({ length: 20000 }, (_, i) => `kelime${(i * 7919) % 20000}`);
+    const start = Date.now();
+    text.sort(list);
+    assert.ok(Date.now() - start < 400);
+  });
+});

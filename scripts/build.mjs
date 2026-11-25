@@ -35,10 +35,15 @@ for (const file of walk(ESM)) {
 writeFileSync(join(CJS, "package.json"), `${JSON.stringify({ type: "commonjs" }, null, 2)}\n`);
 
 const violations = [];
+// Tek izin verilen dış import, react alt yolunun JavaScript dosyalarındaki "react".
+// Tip dosyaları React tiplerine bağlı değildir.
 for (const file of walk(DIST)) {
   if (!/\.(c|m)?js$|\.d\.(c|m)?ts$/.test(file)) continue;
+  const rel = relative(DIST, file).replace(/\\/g, "/");
+  const allowReact = /^(esm|cjs)\/react\/[^/]+\.js$/.test(rel);
   for (const spec of specifiers(readFileSync(file, "utf8"))) {
-    if (!isRelative(spec)) violations.push(`${relative(ROOT, file)}: "${spec}"`);
+    if (isRelative(spec) || (allowReact && spec === "react")) continue;
+    violations.push(`${relative(ROOT, file)}: "${spec}"`);
   }
 }
 if (violations.length > 0) {

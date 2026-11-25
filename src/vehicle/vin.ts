@@ -44,13 +44,13 @@ export function normalize(value: string): string {
  * Şasi numarasını doğrular. Kurallar: 17 karakter, rakam ve I, O, Q dışındaki
  * harfler. Kontrol basamağı yalnız `checkDigit: true` verilirse denetlenir.
  */
-export function validate(value: string, options: VinOptions = {}): Result<Vin> {
+export function validate(value: string, options?: VinOptions): Result<Vin> {
   if (toInput(value) === null) return failure("FORMAT", { label: LABEL });
   const vin = normalize(value);
   if (vin === "") return failure("EMPTY", { label: LABEL });
   if (!/^[A-HJ-NPR-Z0-9]+$/.test(vin)) return failure("INVALID_CHARS", { label: LABEL });
   if (vin.length !== LENGTH) return failure("LENGTH", { label: LABEL, expected: LENGTH });
-  if (options.checkDigit && vin.charAt(8) !== checkDigit(vin)) return failure("CHECKSUM", { label: LABEL });
+  if (options?.checkDigit === true && vin.charAt(8) !== checkDigit(vin)) return failure("CHECKSUM", { label: LABEL });
   return success(vin as Vin);
 }
 

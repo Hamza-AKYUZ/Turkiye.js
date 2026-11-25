@@ -8,6 +8,7 @@ export type { Result } from "./core/result.ts";
 export type { StandardSchemaV1 } from "./core/schema.ts";
 export * as date from "./date/index.ts";
 export * as iban from "./iban/index.ts";
+export * as mask from "./mask/index.ts";
 export * as money from "./money/index.ts";
 export * as phone from "./phone/index.ts";
 export * as tckn from "./tckn/index.ts";

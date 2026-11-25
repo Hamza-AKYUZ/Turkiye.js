@@ -94,8 +94,8 @@ export function detectTaxId(value: string | number): "vkn" | "tckn" | null {
 }
 
 /** Test ve örnek veri için geçerli bir numara üretir. */
-export function generate(options: GenerateOptions = {}): Vkn {
-  const random = options.random ?? Math.random;
+export function generate(options?: GenerateOptions): Vkn {
+  const random = options?.random ?? Math.random;
   const digits: number[] = [];
   while (digits.length < 9) digits.push(randomInt(random, 10));
   digits.push(checkDigit(digits));

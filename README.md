@@ -7,7 +7,7 @@ Türkiye'ye özgü doğrulama, formatlama ve metin araçları. TCKN, VKN, IBAN, 
 - **TypeScript:** Tipler paketle gelir, doğrulanmış değerler tip seviyesinde işaretlenir.
 - **Tree-shaking:** Yalnız kullandığın modül bundle'a girer.
 
-> **Durum:** Geliştirme aşamasında, henüz yayınlanmadı. Hazır modüller: `tckn`, `vkn`, `iban`, `phone`, `card`, `text`, `money`, `address`, `date`, `company`, `vehicle`. Plan için [SPEC.md](./SPEC.md) dosyasına bakın.
+> **Durum:** Geliştirme aşamasında, henüz yayınlanmadı. Hazır modüller: `tckn`, `vkn`, `iban`, `phone`, `card`, `text`, `money`, `address`, `date`, `company`, `vehicle`, `mask`, `react`. Plan için [SPEC.md](./SPEC.md) dosyasına bakın.
 
 Paket yalnız kurala dayalı hesaplar ve kalıcı veriler içerir. Zamanla değişen listeler (banka adları, ilçe ve mahalle, vergi dairesi, dini bayram tarihleri) pakette yoktur; gerektiğinde uygulama kendi verisini verir.
 
@@ -108,6 +108,8 @@ date.addBusinessDays("2026-11-27", 1);       // 30 Kasım 2026 Pazartesi
 date.businessDaysBetween("2026-11-27", "2026-12-04"); // 5
 ```
 
+Tarih metni ISO 8601 biçiminde verilir: `"2026-11-25"` ya da `"2026-11-25T14:30"`. `"25.11.2026"` gibi biçimler tarayıcılar arasında farklı yorumlandığı için `FORMAT` hatası verir.
+
 `holidays(year)` yalnız kanunla belirlenmiş sabit tarihli tatilleri döner. Dini bayramlar her yıl değiştiği için iş günü hesabına uygulama tarafından eklenir:
 
 ```ts
@@ -129,6 +131,47 @@ company.mersis.isValid("0123-4567-8901-2345"); // true
 ```
 
 Şasi numarasının kontrol basamağı yalnız Kuzey Amerika'da zorunludur. `vin.validate` bu yüzden kontrol basamağını varsayılan olarak denetlemez; `{ checkDigit: true }` ile açılır.
+
+### Yazarken format (maske)
+
+```ts
+import { createMask, IbanMask, MoneyMask } from "turkiye.js/mask";
+
+const iban = new IbanMask();
+iban.input("tr3300061");     // { value: "TR33 0006 1", raw: "TR3300061", cursor: 11, complete: false }
+
+createMask("phone").input("53212").value;     // "0532 12"
+createMask("plate").input("34abc1").value;    // "34 ABC 1"
+
+const money = new MoneyMask();
+money.input("1234567,5").value;               // "1.234.567,5"
+money.toNumber();                             // 1234567.5
+```
+
+Maskeler: `TcknMask`, `VknMask`, `IbanMask`, `PhoneMask`, `CardMask`, `PlateMask`, `MoneyMask`. İmleç konumu korunur; bir ayraç silindiğinde ondan önceki karakter silinir.
+
+Framework kullanmayan sayfalarda `attachMask` kullanılır. Dönen fonksiyon dinleyiciyi kaldırır:
+
+```ts
+import { attachMask, PhoneMask } from "turkiye.js/mask";
+
+const detach = attachMask(document.querySelector("#telefon"), new PhoneMask());
+// Input sayfadan kaldırılmadan önce:
+detach();
+```
+
+### React
+
+```tsx
+import { useMask } from "turkiye.js/react";
+
+function IbanInput() {
+  const iban = useMask("iban");
+  return <input {...iban.inputProps} aria-invalid={!iban.state.complete} />;
+}
+```
+
+`useMask(kind, opts?)` şunları döner: `inputProps` (`value`, `onChange`, `ref`), `value`, `state`, `setValue` ve `reset`. `opts`: `{ initialValue?, decimals? }`. React yalnız bu alt yolu kullanan projede gerekir; tipler `@types/react` gerektirmez. Sunucuda render edilen sayfalarda ilk değer iki tarafta aynı sonucu verir.
 
 Modüller ayrı ayrı da içe aktarılabilir:
 
@@ -213,9 +256,11 @@ setMessages({
 
 Hata kodları: `EMPTY`, `INVALID_CHARS`, `LENGTH`, `CHECKSUM`, `FORMAT`, `COUNTRY`, `UNKNOWN_BANK`, `RANGE`, `EXPIRED`.
 
-## Planlanan modüller
+### Hatalı girdi
 
-`mask` (yazarken format), `react`
+Doğrulama fonksiyonları hiçbir girdide hata fırlatmaz. `text` fonksiyonları metin olmayan girdiyi boş metin sayar. Seçenek nesnesi yerine `null` verilmesi varsayılan seçeneklerle aynıdır. Bilinmeyen hal adı ya da maske türü gibi geliştirici hataları açık mesajlı `TypeError` verir.
+
+Paketin ESM ve CommonJS kopyaları aynı uygulamada birlikte yüklenirse `instanceof TurkiyeError` ve `setMessages` ayarı iki kopyada da geçerlidir.
 
 Ayrıntılar: [SPEC.md](./SPEC.md)
 

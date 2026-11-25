@@ -18,5 +18,6 @@ assert.equal(require("turkiye.js/money").parse("1.234,56 TL"), 1234.56);
 assert.equal(lib.address.provinces().length, 81);
 assert.equal(require("turkiye.js/date").businessDaysBetween("2026-11-27", "2026-12-04"), 5);
 assert.equal(require("turkiye.js/vehicle").plate.province("06 A 1234").name, "Ankara");
+assert.equal(new (require("turkiye.js/mask").PhoneMask)().input("5321234567").value, "0532 123 45 67");
 
 console.log(`CJS smoke testi tamamlandı (Node ${process.versions.node})`);

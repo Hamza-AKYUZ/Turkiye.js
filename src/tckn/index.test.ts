@@ -123,3 +123,9 @@ describe("tckn.schema", () => {
     assert.equal(tckn.schema(), tckn.schema());
   });
 });
+
+describe("tckn.generate: hatalı seçenek", () => {
+  it("null seçeneği varsayılan kabul eder", () => {
+    assert.ok(tckn.isValid(tckn.generate(null as never)));
+  });
+});

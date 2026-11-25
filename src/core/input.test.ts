@@ -88,3 +88,13 @@ describe("toDigits", () => {
     assert.deepEqual(toDigits(""), []);
   });
 });
+
+describe("randomInt: hatalı üreteç", () => {
+  it("aralık dışı ya da sayı olmayan değerde TypeError verir", () => {
+    for (const value of [Number.NaN, -0.1, 1.5, "0.5"]) {
+      assert.throws(() => randomInt(() => value as number, 10), TypeError);
+    }
+    assert.throws(() => randomInt(null as never, 10), TypeError);
+    assert.equal(randomInt(() => 1, 10), 9);
+  });
+});

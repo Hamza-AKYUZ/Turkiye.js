@@ -1,3 +1,4 @@
+import { toText } from "../core/input.ts";
 import { toLower } from "./case.ts";
 
 const FOLD: Readonly<Record<string, string>> = {
@@ -48,7 +49,7 @@ export interface SlugifyOptions {
  * slugify("Çalışma Saatleri & İletişim"); // "calisma-saatleri-ve-iletisim"
  */
 export function slugify(value: string, options: SlugifyOptions = {}): string {
-  const separator = options.separator ?? "-";
-  const words = fold(value.replace(/&/g, " ve ")).match(/[a-z0-9]+/g);
+  const separator = typeof options?.separator === "string" ? options.separator : "-";
+  const words = fold(toText(value).replace(/&/g, " ve ")).match(/[a-z0-9]+/g);
   return words === null ? "" : words.join(separator);
 }

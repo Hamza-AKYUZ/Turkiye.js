@@ -65,3 +65,27 @@ describe("resetMessages", () => {
     assert.equal(formatMessage("EMPTY", { label: "TCKN" }), "TCKN boş olamaz");
   });
 });
+
+describe("setMessages: hatalı girdi", () => {
+  it("nesne olmayan girdide TypeError verir", () => {
+    assert.throws(() => setMessages(null as never), TypeError);
+  });
+
+  it("__proto__ anahtarını reddeder ve prototipi değiştirmez", () => {
+    assert.throws(() => setMessages(JSON.parse('{"__proto__": {"polluted": "x"}}')), TypeError);
+    assert.equal(({} as Record<string, unknown>)["polluted"], undefined);
+  });
+
+  it("değerdeki $ dizilerini olduğu gibi yazar", () => {
+    setMessages({ FORMAT: "{label}: $& $1" });
+    assert.equal(formatMessage("FORMAT", { label: "A$&" }), "A$&: $& $1");
+  });
+
+  it("ayar genel anahtarda paylaşılır", () => {
+    setMessages({ EMPTY: "bos" });
+    const shared = (globalThis as unknown as Record<symbol, { current: Record<string, string> }>)[
+      Symbol.for("turkiye.js.messages")
+    ];
+    assert.equal(shared?.current["EMPTY"], "bos");
+  });
+});

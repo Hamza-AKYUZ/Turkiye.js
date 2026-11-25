@@ -1,3 +1,8 @@
+import { toText } from "../core/input.ts";
+
+// Metin fonksiyonları metin olmayan girdide hata vermez: sayılar metne çevrilir,
+// diğer değerler boş metin sayılır.
+
 /**
  * Türkçe kurallarına göre büyük harfe çevirir (i: İ, ı: I).
  *
@@ -5,7 +10,7 @@
  * toUpper("istanbul ılık"); // "İSTANBUL ILIK"
  */
 export function toUpper(value: string): string {
-  return value.replace(/i/g, "İ").toUpperCase();
+  return toText(value).replace(/i/g, "İ").toUpperCase();
 }
 
 /**
@@ -15,7 +20,7 @@ export function toUpper(value: string): string {
  * toLower("IŞIK İZİ"); // "ışık izi"
  */
 export function toLower(value: string): string {
-  return value.replace(/I/g, "ı").replace(/İ/g, "i").toLowerCase();
+  return toText(value).replace(/I/g, "ı").replace(/İ/g, "i").toLowerCase();
 }
 
 const MINOR_WORDS = new Set(["ve", "veya", "ile", "ya", "yahut", "da", "de", "ki", "ama", "fakat", "hem", "ne"]);
@@ -28,7 +33,7 @@ const MINOR_WORDS = new Set(["ve", "veya", "ile", "ya", "yahut", "da", "de", "ki
  */
 export function toTitle(value: string): string {
   let first = true;
-  return value.replace(/\S+/g, (word) => {
+  return toText(value).replace(/\S+/g, (word) => {
     const lower = toLower(word);
     const keepLower = !first && MINOR_WORDS.has(lower);
     first = false;

@@ -169,3 +169,71 @@ describe("date.addBusinessDays ve businessDaysBetween", () => {
     }
   });
 });
+
+describe("date: sınır durumlar", () => {
+  it("0-99 arası yılları kaydırmaz", () => {
+    assert.equal(date.format("0050-03-01", "YYYY-MM-DD"), "0050-03-01");
+    assert.equal(date.isBusinessDay("0050-03-01"), true);
+  });
+
+  it("yalnız ISO 8601 metinlerini kabul eder", () => {
+    assert.equal(date.format("2026-11-25T10:05", "HH:mm"), "10:05");
+    assert.equal(date.format("2026-11-25T10:05:00.000Z", "YYYY"), "2026");
+    for (const value of ["25.11.2026", "Nov 25 2026", "2026/11/25", "2026-11-25 10:00", "abc"]) {
+      assert.throws(() => date.format(value), isCode("FORMAT"));
+    }
+  });
+
+  it("Date gibi görünen ama Date olmayan nesneyi reddeder", () => {
+    const fake = Object.create(Date.prototype) as Date;
+    assert.throws(() => date.format(fake), isCode("FORMAT"));
+    const real = new Date(2026, 10, 25);
+    assert.equal(date.format(real, "D"), "25");
+  });
+
+  it("geçersiz desen ve seçeneklerde açık hata verir", () => {
+    assert.throws(() => date.format("2026-11-25", 5 as never), /desen/);
+    assert.equal(date.format("2026-11-25", null as never), "25 Kasım 2026 Çarşamba");
+    assert.equal(date.isBusinessDay("2026-11-25", null as never), true);
+    assert.equal(date.isHoliday("2026-10-29", null as never), true);
+    assert.throws(() => date.isBusinessDay("2026-11-25", { weekend: 5 as never }), TypeError);
+    assert.throws(() => date.isBusinessDay("2026-11-25", { holidays: "x" as never }), TypeError);
+    assert.throws(() => date.isBusinessDay("2026-11-25", { weekend: [7] }), isCode("RANGE"));
+  });
+
+  it("haftanın her günü tatilse sonsuz döngüye girmez", () => {
+    assert.throws(() => date.addBusinessDays("2026-11-25", 1, { weekend: [0, 1, 2, 3, 4, 5, 6] }), isCode("RANGE"));
+  });
+
+  it("uzun aralıkları hızlı hesaplar ve gün gün sayımla aynı sonucu verir", () => {
+    const start = Date.now();
+    assert.ok(date.businessDaysBetween("0001-01-01", "9999-12-31") > 2_500_000);
+    assert.throws(() => date.addBusinessDays("2026-01-01", 1e9), isCode("RANGE"));
+    assert.ok(Date.now() - start < 300);
+
+    const holidays = ["2026-03-20", "2026-03-21", "2026-03-22", "2026-05-27"];
+    for (const weekend of [[0, 6], [0], [5]]) {
+      const options = { holidays, weekend };
+      let day = new Date(2026, 0, 1);
+      let expected = 0;
+      for (let i = 1; i <= 400; i++) {
+        day = new Date(2026, 0, 1 + i);
+        if (date.isBusinessDay(day, options)) expected++;
+        if (i % 37 === 0) {
+          assert.equal(date.businessDaysBetween("2026-01-01", day, options), expected);
+          assert.equal(date.businessDaysBetween(day, "2026-01-01", options), -expected);
+        }
+      }
+      for (const count of [1, 5, 23, 101, 260, -1, -7, -150]) {
+        const result = date.addBusinessDays("2026-06-10", count, options);
+        assert.equal(date.businessDaysBetween("2026-06-10", result, options), count);
+        assert.equal(date.isBusinessDay(result, options), true);
+      }
+    }
+  });
+
+  it("saat bilgisini korur", () => {
+    const result = date.addBusinessDays(new Date(2026, 10, 27, 15, 30), 300);
+    assert.equal(date.format(result, "HH:mm"), "15:30");
+  });
+});

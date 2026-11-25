@@ -1,3 +1,4 @@
+import { toText } from "../core/input.ts";
 import { toLower, toUpper } from "./case.ts";
 import { integerWords } from "./numbers.ts";
 
@@ -30,6 +31,8 @@ export interface SuffixOptions {
   /** Ünlü uyumuna uymayan kelimeler için (saat: saate, gol: golü). */
   readonly harmony?: "front" | "back";
 }
+
+const CASES: readonly unknown[] = ["accusative", "dative", "locative", "ablative", "genitive", "instrumental"];
 
 const VOWELS = "aeıioöuüâîû";
 const BACK = "aıouâû";
@@ -84,8 +87,10 @@ function numberSound(token: string): string {
  * suffix("40", "locative");       // "40'ta"
  * suffix("THY", "dative");        // "THY'ye"
  */
-export function suffix(word: string, kind: GrammaticalCase, options: SuffixOptions = {}): string {
-  const base = word.trim();
+export function suffix(word: string, kind: GrammaticalCase, opts?: SuffixOptions): string {
+  if (!CASES.includes(kind)) throw new TypeError(`Bilinmeyen hal adı: ${String(kind)}`);
+  const options = opts ?? {};
+  const base = toText(word).trim();
   const token = (base.split(/[\s-]+/).pop() as string).replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "");
   if (token === "") return base;
 

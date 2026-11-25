@@ -115,3 +115,27 @@ describe("money KDV hesapları", () => {
     assert.throws(() => money.vatOf(Number.NaN, 20), isCode("RANGE"));
   });
 });
+
+describe("money: sınır durumlar", () => {
+  it("negatif tutarlar pozitiflerle simetrik yuvarlanır", () => {
+    assert.equal(money.addVat(-0.05, 10), -money.addVat(0.05, 10));
+    assert.equal(money.removeVat(-1.05, 5), -money.removeVat(1.05, 5));
+    assert.equal(money.vatOf(-0.05, 10), -money.vatOf(0.05, 10));
+  });
+
+  it("çok büyük tutarı okurken RANGE verir", () => {
+    assert.throws(() => money.parse("9".repeat(400)), isCode("RANGE"));
+    assert.throws(() => money.parse("99999999999999999"), isCode("RANGE"));
+  });
+
+  it("eksi sıfırı 0 olarak döner", () => {
+    assert.ok(Object.is(money.parse("-0"), 0));
+    assert.ok(Object.is(money.vatOf(-0, 20), 0));
+  });
+
+  it("null seçenek nesnesini varsayılan kabul eder", () => {
+    assert.equal(money.format(5, null as never), "5,00 ₺");
+    assert.equal(money.toWords(5, null as never), "beş lira");
+    assert.equal(money.vatOf(120, 20, null as never), 24);
+  });
+});

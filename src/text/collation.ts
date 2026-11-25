@@ -1,3 +1,4 @@
+import { toText } from "../core/input.ts";
 import { toLower } from "./case.ts";
 
 // Türk alfabesi. q, w ve x yabancı kelimeler için en yakın harflerin arasına yerleştirilmiştir.
@@ -20,27 +21,41 @@ function rank(char: string): number {
   return char.codePointAt(0) as number;
 }
 
+/** Bir metnin karşılaştırma anahtarı: karakterler ve sıralama değerleri. */
+interface SortKey {
+  readonly chars: readonly string[];
+  readonly ranks: readonly number[];
+}
+
+function sortKey(value: string): SortKey {
+  const chars = Array.from(value);
+  return { chars, ranks: chars.map(rank) };
+}
+
+function compareKeys(left: SortKey, right: SortKey): number {
+  const length = Math.min(left.ranks.length, right.ranks.length);
+  for (let i = 0; i < length; i++) {
+    const diff = (left.ranks[i] as number) - (right.ranks[i] as number);
+    if (diff !== 0) return diff < 0 ? -1 : 1;
+  }
+  if (left.ranks.length !== right.ranks.length) return left.ranks.length < right.ranks.length ? -1 : 1;
+  for (let i = 0; i < length; i++) {
+    const diff = tieBreak(left.chars[i] as string, right.chars[i] as string);
+    if (diff !== 0) return diff;
+  }
+  return 0;
+}
+
 /**
  * Türk alfabesine göre karşılaştırır; `Array.prototype.sort` ile kullanılabilir.
- * Önce harf sırasına, eşitlikte büyük/küçük harf ve aksana bakılır.
+ * Önce harf sırasına, eşitlikte büyük/küçük harf ve aksana bakılır. Çok sayıda
+ * öğe sıralanırken `sort` fonksiyonu daha hızlıdır.
  *
  * @example
  * ["şeker", "çay", "su", "cam"].sort(compare); // ["cam", "çay", "su", "şeker"]
  */
 export function compare(a: string, b: string): number {
-  const left = Array.from(a);
-  const right = Array.from(b);
-  const length = Math.min(left.length, right.length);
-  for (let i = 0; i < length; i++) {
-    const diff = rank(left[i] as string) - rank(right[i] as string);
-    if (diff !== 0) return diff < 0 ? -1 : 1;
-  }
-  if (left.length !== right.length) return left.length < right.length ? -1 : 1;
-  for (let i = 0; i < length; i++) {
-    const diff = tieBreak(left[i] as string, right[i] as string);
-    if (diff !== 0) return diff;
-  }
-  return 0;
+  return compareKeys(sortKey(toText(a)), sortKey(toText(b)));
 }
 
 /** Harf sırası eşit olan karakterlerde aksansız ve küçük harf önce gelir. */
@@ -59,7 +74,8 @@ function isAccented(char: string): boolean {
 
 /**
  * Diziyi Türk alfabesine göre sıralanmış yeni bir dizi olarak döner. Nesne
- * dizilerinde alan adı ya da değer seçen fonksiyon verilebilir.
+ * dizilerinde alan adı ya da değer seçen fonksiyon verilebilir. Girdi dizisi
+ * değiştirilmez; eşit öğelerin sırası korunur.
  *
  * @example
  * sort(["Zeynep", "Çağla", "Can"]);            // ["Can", "Çağla", "Zeynep"]
@@ -69,11 +85,15 @@ function isAccented(char: string): boolean {
 export function sort(values: readonly string[]): string[];
 export function sort<T>(values: readonly T[], key: keyof T | ((item: T) => string)): T[];
 export function sort<T>(values: readonly T[], key?: keyof T | ((item: T) => string)): T[] {
+  if (!Array.isArray(values)) throw new TypeError("sort bir dizi bekler");
   const select =
     key === undefined
-      ? (item: T) => String(item)
+      ? (item: T) => toText(item)
       : typeof key === "function"
-        ? key
-        : (item: T) => String(item[key]);
-  return [...values].sort((a, b) => compare(select(a), select(b)));
+        ? (item: T) => toText(key(item))
+        : (item: T) => toText(item === null || item === undefined ? undefined : item[key]);
+  // Anahtarlar her öğe için bir kez hesaplanır.
+  const entries = values.map((item, index) => ({ item, index, key: sortKey(select(item)) }));
+  entries.sort((a, b) => compareKeys(a.key, b.key) || a.index - b.index);
+  return entries.map((entry) => entry.item);
 }

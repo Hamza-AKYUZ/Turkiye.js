@@ -27,6 +27,8 @@ export const ERROR_CODES = [
  */
 export type ErrorCode = (typeof ERROR_CODES)[number];
 
+const ERROR_BRAND = Symbol.for("turkiye.js.error");
+
 /**
  * `parse` fonksiyonlarının geçersiz girdide fırlattığı hata.
  *
@@ -46,6 +48,13 @@ export class TurkiyeError extends Error {
     super(message);
     this.name = "TurkiyeError";
     this.code = code;
+    Object.defineProperty(this, ERROR_BRAND, { value: true });
+  }
+
+  // Paketin ESM ve CommonJS kopyaları aynı uygulamada birlikte yüklendiğinde
+  // de `instanceof` doğru sonuç verir.
+  static override [Symbol.hasInstance](value: unknown): boolean {
+    return typeof value === "object" && value !== null && (value as Record<symbol, unknown>)[ERROR_BRAND] === true;
   }
 }
 

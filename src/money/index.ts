@@ -37,7 +37,19 @@ function toUnits(amount: number, decimals: number): number {
 }
 
 function fromKurus(kurus: number): number {
-  return kurus / 100;
+  const value = kurus / 100;
+  return value === 0 ? 0 : value;
+}
+
+/**
+ * Yarımda sıfırdan uzağa yuvarlar; negatif ve pozitif tutarlar simetrik
+ * yuvarlanır. Kayan nokta hatası yuvarlamadan önce düzeltilir.
+ */
+function roundUnits(value: number): number {
+  if (!Number.isFinite(value)) throw rangeError();
+  const units = Math.round(Number(Math.abs(value).toPrecision(15)));
+  if (!Number.isSafeInteger(units)) throw rangeError();
+  return value < 0 ? -units : units;
 }
 
 function checkRate(rate: number): number {
@@ -58,7 +70,8 @@ function checkRate(rate: number): number {
  * format(-5, { symbol: "TL", position: "before" });        // "-TL 5,00"
  * format(1234.567, { decimals: 0, symbol: "none" });       // "1.235"
  */
-export function format(amount: number, options: FormatOptions = {}): string {
+export function format(amount: number, opts?: FormatOptions): string {
+  const options = opts ?? {};
   const decimals = options.decimals ?? 2;
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 4) throw rangeError("Ondalık hane sayısı");
   const units = toUnits(amount, decimals);
@@ -80,6 +93,7 @@ export function format(amount: number, options: FormatOptions = {}): string {
  * ayraç, değilse ondalık ayraç kabul edilir.
  *
  * @throws {TurkiyeError} `EMPTY` ya da `FORMAT`: metin tutar olarak okunamazsa.
+ * `RANGE`: tutar kuruş hassasiyetiyle güvenli tam sayı sınırını aşıyorsa.
  *
  * @example
  * parse("1.234,56 TL"); // 1234.56
@@ -109,7 +123,11 @@ export function parse(text: string): number {
   } else {
     throw new TurkiyeError("FORMAT", formatMessage("FORMAT", { label: LABEL }));
   }
-  return sign * Number(normalized);
+  const value = Number(normalized);
+  if (!Number.isFinite(value) || Math.abs(value) > Number.MAX_SAFE_INTEGER / 100) {
+    throw new TurkiyeError("RANGE", formatMessage("RANGE", { label: LABEL }));
+  }
+  return value === 0 ? 0 : sign * value;
 }
 
 /**
@@ -130,7 +148,7 @@ export function toWords(amount: number, options: ToWordsOptions = {}): string {
   if (kurus < 0) words.push("eksi");
   if (lira > 0 || rest === 0) words.push(...integerWords(lira), "lira");
   if (rest > 0) words.push(...integerWords(rest), "kuruş");
-  return words.join(options.joined ? "" : " ");
+  return words.join(options?.joined ? "" : " ");
 }
 
 /**
@@ -141,7 +159,7 @@ export function toWords(amount: number, options: ToWordsOptions = {}): string {
  */
 export function addVat(amount: number, rate: number): number {
   const kurus = toUnits(amount, 2);
-  return fromKurus(Math.round((kurus * (100 + checkRate(rate))) / 100));
+  return fromKurus(roundUnits((kurus * (100 + checkRate(rate))) / 100));
 }
 
 /**
@@ -152,7 +170,7 @@ export function addVat(amount: number, rate: number): number {
  */
 export function removeVat(amount: number, rate: number): number {
   const kurus = toUnits(amount, 2);
-  return fromKurus(Math.round((kurus * 100) / (100 + checkRate(rate))));
+  return fromKurus(roundUnits((kurus * 100) / (100 + checkRate(rate))));
 }
 
 /**
@@ -165,6 +183,8 @@ export function removeVat(amount: number, rate: number): number {
 export function vatOf(amount: number, rate: number, options: VatOptions = {}): number {
   const kurus = toUnits(amount, 2);
   const checked = checkRate(rate);
-  const vat = options.included ? kurus - Math.round((kurus * 100) / (100 + checked)) : Math.round((kurus * checked) / 100);
+  const vat = options?.included
+    ? kurus - roundUnits((kurus * 100) / (100 + checked))
+    : roundUnits((kurus * checked) / 100);
   return fromKurus(vat);
 }

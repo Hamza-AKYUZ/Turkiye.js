@@ -54,5 +54,5 @@ export function numberToWords(value: number, options: NumberToWordsOptions = {})
   }
   const words = integerWords(Math.abs(value));
   if (value < 0) words.unshift("eksi");
-  return words.join(options.joined ? "" : " ");
+  return words.join(options?.joined ? "" : " ");
 }

@@ -99,9 +99,9 @@ export function kind(value: string | number): TcknKind | null {
  * Test ve örnek veri için geçerli bir numara üretir. Üretilen numaranın gerçek
  * bir kişiye ait olmadığı garanti edilmez; yalnız test amaçlı kullanılmalıdır.
  */
-export function generate(options: GenerateOptions = {}): Tckn {
-  const random = options.random ?? Math.random;
-  const digits: number[] = options.foreign ? [9, 9] : [1 + randomInt(random, 9)];
+export function generate(options?: GenerateOptions): Tckn {
+  const random = options?.random ?? Math.random;
+  const digits: number[] = options?.foreign ? [9, 9] : [1 + randomInt(random, 9)];
   while (digits.length < 9) digits.push(randomInt(random, 10));
   digits.push(...checkDigits(digits));
   return digits.join("") as Tckn;

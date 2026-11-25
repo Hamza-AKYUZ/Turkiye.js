@@ -8,6 +8,7 @@ import * as companyModule from "turkiye.js/company";
 import * as dateModule from "turkiye.js/date";
 import * as vehicleModule from "turkiye.js/vehicle";
 import * as ibanModule from "turkiye.js/iban";
+import * as maskModule from "turkiye.js/mask";
 import * as moneyModule from "turkiye.js/money";
 import * as phoneModule from "turkiye.js/phone";
 import * as tcknModule from "turkiye.js/tckn";
@@ -38,6 +39,19 @@ assert.equal(esm.date.isBusinessDay("2026-10-29"), false);
 assert.equal(esm.company.mersis.isValid("0123456789012345"), true);
 assert.equal(esm.vehicle.plate.format("34abc123"), "34 ABC 123");
 assert.equal(esm.vehicle.vin.hasValidCheckDigit("1M8GDM9AXKP042788"), true);
+assert.equal(esm.mask.createMask("iban").input("tr3300061").value, "TR33 0006 1");
+
+// ESM ve CJS kopyaları birlikte yüklendiğinde hata sınıfı ve mesaj ayarı paylaşılır.
+assert.ok(new cjs.TurkiyeError("EMPTY", "x") instanceof esm.TurkiyeError);
+assert.ok(new esm.TurkiyeError("EMPTY", "x") instanceof cjs.TurkiyeError);
+esm.setMessages({ EMPTY: "ortak" });
+assert.equal(cjs.tckn.validate("").message, "ortak");
+cjs.resetMessages();
+assert.equal(esm.tckn.validate("").message, "TCKN boş olamaz");
+
+// react alt yolu yalnız React kurulu projede yüklenir; burada React yoktur.
+await assert.rejects(import("turkiye.js/react"), (e) => String(e?.message).includes("react"));
+assert.throws(() => require("turkiye.js/react"), (e) => String(e?.message).includes("react"));
 
 const keys = (module) => Object.keys(module).filter((k) => k !== "default" && k !== "__esModule").sort();
 const modules = {
@@ -47,6 +61,7 @@ const modules = {
   date: dateModule,
   vehicle: vehicleModule,
   iban: ibanModule,
+  mask: maskModule,
   money: moneyModule,
   phone: phoneModule,
   tckn: tcknModule,

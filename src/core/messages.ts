@@ -23,7 +23,23 @@ const DEFAULT_MESSAGES: Readonly<MessageTemplates> = Object.freeze({
   EXPIRED: "{label} süresi dolmuş",
 });
 
-let current: MessageTemplates = { ...DEFAULT_MESSAGES };
+interface MessageStore {
+  current: Readonly<MessageTemplates>;
+}
+
+// Mesajlar tek bir genel anahtarda tutulur; böylece paketin ESM ve CommonJS
+// kopyaları aynı ayarı paylaşır.
+const STORE_KEY = Symbol.for("turkiye.js.messages");
+
+function store(): MessageStore {
+  const scope = globalThis as unknown as Record<symbol, MessageStore | undefined>;
+  let value = scope[STORE_KEY];
+  if (value === undefined) {
+    value = { current: DEFAULT_MESSAGES };
+    Object.defineProperty(scope, STORE_KEY, { value, configurable: true });
+  }
+  return value;
+}
 
 /**
  * Hata mesajlarını değiştirir. Verilmeyen kodların mesajı korunur.
@@ -33,23 +49,30 @@ let current: MessageTemplates = { ...DEFAULT_MESSAGES };
  * setMessages({ LENGTH: "{label} must be {expected} characters" });
  */
 export function setMessages(templates: Partial<MessageTemplates>): void {
+  if (typeof templates !== "object" || templates === null) {
+    throw new TypeError("setMessages bir nesne bekler");
+  }
+  const next: MessageTemplates = { ...store().current };
   for (const [code, template] of Object.entries(templates)) {
     if (!isErrorCode(code)) throw new TypeError(`Bilinmeyen hata kodu: ${code}`);
     if (typeof template !== "string") throw new TypeError(`${code} mesajı metin olmalı`);
+    next[code] = template;
   }
-  current = { ...current, ...templates };
+  store().current = Object.freeze(next);
 }
 
 /** Hata mesajlarını varsayılan değerlerine döndürür. */
 export function resetMessages(): void {
-  current = { ...DEFAULT_MESSAGES };
+  store().current = DEFAULT_MESSAGES;
 }
 
 /** @internal */
 export function formatMessage(code: ErrorCode, params: MessageParams): string {
-  return current[code]
-    .replace(/\{label\}/g, params.label)
-    .replace(/\{expected\}/g, params.expected === undefined ? "" : String(params.expected))
+  const expected = params.expected === undefined ? "" : String(params.expected);
+  // Değiştirme fonksiyonu, değerdeki "$&" gibi özel dizilerin yorumlanmasını önler.
+  return store()
+    .current[code].replace(/\{label\}/g, () => params.label)
+    .replace(/\{expected\}/g, () => expected)
     .replace(/\s{2,}/g, " ")
     .trim();
 }

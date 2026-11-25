@@ -23,7 +23,8 @@ export function provinces(): readonly Province[] {
 
 /** Plaka koduna göre ili döner. Kod 1-81 dışındaysa `null`. */
 export function province(code: number | string): Province | null {
-  const number = typeof code === "number" ? code : /^\s*\d{1,2}\s*$/.test(String(code)) ? Number(code) : Number.NaN;
+  const number =
+    typeof code === "number" ? code : typeof code === "string" && /^\s*\d{1,2}\s*$/.test(code) ? Number(code) : Number.NaN;
   return Number.isInteger(number) && number >= 1 && number <= 81 ? (provinces()[number - 1] as Province) : null;
 }
 

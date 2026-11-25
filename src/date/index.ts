@@ -1,7 +1,12 @@
 import { TurkiyeError } from "../core/errors.ts";
 import { formatMessage } from "../core/messages.ts";
 
-/** `Date` nesnesi ya da "YYYY-MM-DD" biçiminde tarih. Tarih metni yerel saate göre yorumlanır. */
+/**
+ * `Date` nesnesi ya da ISO 8601 biçiminde tarih metni: "YYYY-MM-DD" ya da
+ * "YYYY-MM-DDTHH:mm", "YYYY-MM-DDTHH:mm:ss", "YYYY-MM-DDTHH:mm:ss.sssZ".
+ * Saat dilimi verilmeyen metin yerel saate göre yorumlanır. Diğer biçimler
+ * tarayıcılar arasında farklı yorumlandığı için kabul edilmez.
+ */
 export type DateInput = Date | string;
 
 export interface Holiday {
@@ -39,22 +44,41 @@ const FIXED_HOLIDAYS: readonly (readonly [number, number, string, boolean, numbe
   [10, 29, "Cumhuriyet Bayramı", false, 0],
 ];
 
+const DEFAULT_PATTERN = "D MMMM YYYY dddd";
+const DAY_MS = 86_400_000;
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
+const ISO_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})?$/;
+
 function invalidDate(): TurkiyeError {
   return new TurkiyeError("FORMAT", formatMessage("FORMAT", { label: "Tarih" }));
 }
 
+function rangeError(label: string): TurkiyeError {
+  return new TurkiyeError("RANGE", formatMessage("RANGE", { label }));
+}
+
+/** Başka bir pencereden (iframe) gelen `Date` nesnelerini de tanır. */
+function isDateObject(value: unknown): value is Date {
+  return Object.prototype.toString.call(value) === "[object Date]";
+}
+
 function toDate(input: DateInput): Date {
   let date: Date;
-  if (input instanceof Date) {
+  if (isDateObject(input)) {
     date = new Date(input.getTime());
   } else if (typeof input === "string") {
-    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input.trim());
+    const text = input.trim();
+    const match = ISO_DATE.exec(text);
     if (match) {
       const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
-      date = new Date(year, month - 1, day);
-      if (date.getMonth() !== month - 1 || date.getDate() !== day) throw invalidDate();
+      // setFullYear, 0-99 arası yılların 1900'lere kaydırılmasını önler.
+      date = new Date(2000, 0, 1);
+      date.setFullYear(year, month - 1, day);
+      if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) throw invalidDate();
+    } else if (ISO_DATE_TIME.test(text)) {
+      date = new Date(text);
     } else {
-      date = new Date(input);
+      throw invalidDate();
     }
   } else {
     throw invalidDate();
@@ -67,8 +91,31 @@ function pad(value: number, length = 2): string {
   return String(value).padStart(length, "0");
 }
 
-function dayKey(date: Date): string {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+/** Yerel takvim gününü 1970-01-01'den itibaren gün sayısına çevirir. Saat ve yaz saati etkisizdir. */
+function dayFromParts(year: number, month: number, day: number): number {
+  const utc = new Date(0);
+  utc.setUTCFullYear(year, month, day);
+  return Math.round(utc.getTime() / DAY_MS);
+}
+
+function dayNumber(date: Date): number {
+  return dayFromParts(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function yearOf(day: number): number {
+  return new Date(day * DAY_MS).getUTCFullYear();
+}
+
+/** 0: Pazar ... 6: Cumartesi. 1970-01-01 Perşembe günüdür. */
+function weekdayOf(day: number): number {
+  return (((day + 4) % 7) + 7) % 7;
+}
+
+const MIN_DAY = dayFromParts(1, 0, 1);
+const MAX_DAY = dayFromParts(9999, 11, 31);
+
+function checkDay(day: number): void {
+  if (!(day >= MIN_DAY && day <= MAX_DAY)) throw rangeError("Yıl");
 }
 
 /**
@@ -82,10 +129,12 @@ function dayKey(date: Date): string {
  * format(new Date(2026, 0, 5, 9, 7), "DD.MM.YYYY HH:mm"); // "05.01.2026 09:07"
  * format("2026-11-25", "D MMMM [günü]");          // "25 Kasım günü"
  */
-export function format(input: DateInput, pattern = "D MMMM YYYY dddd"): string {
+export function format(input: DateInput, pattern?: string): string {
+  const template = pattern ?? DEFAULT_PATTERN;
+  if (typeof template !== "string") throw new TypeError("Tarih deseni metin olmalı");
   const date = toDate(input);
   const tokens: Readonly<Record<string, string>> = {
-    YYYY: String(date.getFullYear()),
+    YYYY: pad(date.getFullYear(), 4),
     YY: pad(date.getFullYear() % 100),
     MMMM: MONTHS[date.getMonth()] as string,
     MMM: MONTHS_SHORT[date.getMonth()] as string,
@@ -100,19 +149,14 @@ export function format(input: DateInput, pattern = "D MMMM YYYY dddd"): string {
     mm: pad(date.getMinutes()),
     ss: pad(date.getSeconds()),
   };
-  return pattern.replace(/\[([^\]]*)\]|YYYY|YY|MMMM|MMM|MM|M|DD|D|dddd|ddd|HH|H|mm|ss/g, (token, literal?: string) =>
+  return template.replace(/\[([^\]]*)\]|YYYY|YY|MMMM|MMM|MM|M|DD|D|dddd|ddd|HH|H|mm|ss/g, (token, literal?: string) =>
     literal !== undefined ? literal : (tokens[token] as string),
   );
 }
 
-function calendarDays(from: Date, to: Date): number {
-  const a = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate());
-  const b = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate());
-  return Math.round((b - a) / 86_400_000);
-}
-
 /**
- * Tarihi şu ana göre Türkçe ifade eder.
+ * Tarihi şu ana göre Türkçe ifade eder. Sunucuda üretilip tarayıcıda yeniden
+ * çizilen sayfalarda iki tarafın aynı sonucu vermesi için `now` verilmelidir.
  *
  * @example
  * relative(new Date(Date.now() - 30_000));    // "az önce"
@@ -120,9 +164,9 @@ function calendarDays(from: Date, to: Date): number {
  * relative(tomorrow);                          // "yarın"
  * relative(threeDaysAgo);                      // "3 gün önce"
  */
-export function relative(input: DateInput, now: DateInput = new Date()): string {
+export function relative(input: DateInput, now?: DateInput): string {
   const date = toDate(input);
-  const reference = toDate(now);
+  const reference = now === undefined ? new Date() : toDate(now);
   const seconds = (date.getTime() - reference.getTime()) / 1000;
   const future = seconds > 0;
   const span = (value: number, unit: string) => `${value} ${unit} ${future ? "sonra" : "önce"}`;
@@ -132,7 +176,7 @@ export function relative(input: DateInput, now: DateInput = new Date()): string 
   if (abs < 45 * 60) return span(Math.max(1, Math.round(abs / 60)), "dakika");
   if (abs < 22 * 3600) return span(Math.round(abs / 3600), "saat");
 
-  const days = Math.abs(calendarDays(reference, date));
+  const days = Math.abs(dayNumber(date) - dayNumber(reference));
   if (days <= 1) return future ? "yarın" : "dün";
   if (days < 7) return span(days, "gün");
   if (days < 30) return span(Math.floor(days / 7), "hafta");
@@ -140,6 +184,8 @@ export function relative(input: DateInput, now: DateInput = new Date()): string 
   return span(Math.floor(days / 365), "yıl");
 }
 
+// Son kullanılan yılların listesi tutulur; önbellek boyutu sınırlıdır.
+const HOLIDAY_CACHE_LIMIT = 32;
 const holidayCache = new Map<number, readonly Holiday[]>();
 
 /**
@@ -150,9 +196,7 @@ const holidayCache = new Map<number, readonly Holiday[]>();
  * holidays(2026)[0]; // { date: "2026-01-01", name: "Yılbaşı", half: false }
  */
 export function holidays(year: number): readonly Holiday[] {
-  if (!Number.isInteger(year) || year < 1 || year > 9999) {
-    throw new TurkiyeError("RANGE", formatMessage("RANGE", { label: "Yıl" }));
-  }
+  if (!Number.isInteger(year) || year < 1 || year > 9999) throw rangeError("Yıl");
   let list = holidayCache.get(year);
   if (list === undefined) {
     list = Object.freeze(
@@ -160,30 +204,78 @@ export function holidays(year: number): readonly Holiday[] {
         Object.freeze({ date: `${pad(year, 4)}-${pad(month)}-${pad(day)}`, name, half }),
       ),
     );
+    if (holidayCache.size >= HOLIDAY_CACHE_LIMIT) holidayCache.clear();
     holidayCache.set(year, list);
   }
   return list;
 }
 
-function extraKeys(options: BusinessDayOptions): Set<string> {
-  return new Set((options.holidays ?? []).map((value) => dayKey(toDate(value))));
+/** Tam gün tatillerin gün numaraları. */
+function fixedHolidayDays(year: number): number[] {
+  const days: number[] = [];
+  for (const [month, day, , half, since] of FIXED_HOLIDAYS) {
+    if (!half && year >= since) days.push(dayFromParts(year, month - 1, day));
+  }
+  return days;
 }
 
-function isFullHoliday(date: Date, extra: Set<string>): boolean {
-  const key = dayKey(date);
-  return extra.has(key) || holidays(date.getFullYear()).some((holiday) => !holiday.half && holiday.date === key);
+interface Calendar {
+  readonly weekend: ReadonlySet<number>;
+  readonly extra: ReadonlySet<number>;
+  readonly workdaysPerWeek: number;
+}
+
+function calendar(options: BusinessDayOptions | undefined): Calendar {
+  const weekendList: unknown = options?.weekend ?? [0, 6];
+  const holidayList: unknown = options?.holidays ?? [];
+  if (!Array.isArray(weekendList)) throw new TypeError("weekend bir dizi olmalı");
+  if (!Array.isArray(holidayList)) throw new TypeError("holidays bir dizi olmalı");
+  for (const day of weekendList) {
+    if (!Number.isInteger(day) || day < 0 || day > 6) throw rangeError("Hafta sonu günü");
+  }
+  const weekend = new Set<number>(weekendList as number[]);
+  const extra = new Set<number>((holidayList as DateInput[]).map((value) => dayNumber(toDate(value))));
+  return { weekend, extra, workdaysPerWeek: 7 - weekend.size };
+}
+
+function isFullHoliday(day: number, cal: Calendar): boolean {
+  checkDay(day);
+  return cal.extra.has(day) || fixedHolidayDays(yearOf(day)).includes(day);
+}
+
+function isWorkday(day: number, cal: Calendar): boolean {
+  return !cal.weekend.has(weekdayOf(day)) && !isFullHoliday(day, cal);
+}
+
+/**
+ * `from` hariç, `to` dahil aralıktaki iş günü sayısı (`from <= to`). Hafta
+ * sayısı hesapla bulunur; uzun aralıklar da gün gün dolaşılmaz.
+ */
+function countWorkdays(from: number, to: number, cal: Calendar): number {
+  if (to <= from) return 0;
+  checkDay(from + 1);
+  checkDay(to);
+  const weeks = Math.floor((to - from) / 7);
+  let count = weeks * cal.workdaysPerWeek;
+  for (let day = from + weeks * 7 + 1; day <= to; day++) {
+    if (!cal.weekend.has(weekdayOf(day))) count++;
+  }
+  const off = new Set<number>();
+  for (const day of cal.extra) if (day > from && day <= to) off.add(day);
+  for (let year = yearOf(from + 1); year <= yearOf(to); year++) {
+    for (const day of fixedHolidayDays(year)) if (day > from && day <= to) off.add(day);
+  }
+  for (const day of off) if (!cal.weekend.has(weekdayOf(day))) count--;
+  return count;
 }
 
 /**
  * Tam gün resmî tatil mi? 28 Ekim gibi yarım günler tatil sayılmaz.
  * `options.holidays` ile verilen günler de tatil sayılır.
  */
-export function isHoliday(input: DateInput, options: Pick<BusinessDayOptions, "holidays"> = {}): boolean {
-  return isFullHoliday(toDate(input), extraKeys(options));
-}
-
-function isWorkday(date: Date, extra: Set<string>, weekend: readonly number[]): boolean {
-  return !weekend.includes(date.getDay()) && !isFullHoliday(date, extra);
+export function isHoliday(input: DateInput, options?: Pick<BusinessDayOptions, "holidays">): boolean {
+  const day = dayNumber(toDate(input));
+  return isFullHoliday(day, calendar(options?.holidays === undefined ? undefined : { holidays: options.holidays }));
 }
 
 /**
@@ -193,28 +285,44 @@ function isWorkday(date: Date, extra: Set<string>, weekend: readonly number[]): 
  * isBusinessDay("2026-10-29"); // false (Cumhuriyet Bayramı)
  * isBusinessDay("2026-11-25"); // true
  */
-export function isBusinessDay(input: DateInput, options: BusinessDayOptions = {}): boolean {
-  return isWorkday(toDate(input), extraKeys(options), options.weekend ?? [0, 6]);
+export function isBusinessDay(input: DateInput, options?: BusinessDayOptions): boolean {
+  return isWorkday(dayNumber(toDate(input)), calendar(options));
 }
 
 /**
  * Tarihe iş günü ekler; negatif değer geriye gider. Saat bilgisi korunur.
  *
+ * @throws {TurkiyeError} `RANGE`: gün sayısı tam sayı değilse, haftanın her
+ * günü hafta sonu sayılmışsa ya da sonuç 1-9999 yılları dışına çıkıyorsa.
+ *
  * @example
  * addBusinessDays("2026-11-27", 1); // 30 Kasım 2026 Pazartesi
  * addBusinessDays("2026-03-19", 2, { holidays: ["2026-03-20"] }); // 24 Mart 2026
  */
-export function addBusinessDays(input: DateInput, days: number, options: BusinessDayOptions = {}): Date {
-  if (!Number.isSafeInteger(days)) throw new TurkiyeError("RANGE", formatMessage("RANGE", { label: "Gün sayısı" }));
+export function addBusinessDays(input: DateInput, days: number, options?: BusinessDayOptions): Date {
+  if (!Number.isSafeInteger(days)) throw rangeError("Gün sayısı");
   const date = toDate(input);
-  const extra = extraKeys(options);
-  const weekend = options.weekend ?? [0, 6];
+  const cal = calendar(options);
+  if (days === 0) return date;
+  if (cal.workdaysPerWeek === 0) throw rangeError("Hafta sonu günü");
+
   const step = days < 0 ? -1 : 1;
+  let day = dayNumber(date);
   let remaining = Math.abs(days);
   while (remaining > 0) {
-    date.setDate(date.getDate() + step);
-    if (isWorkday(date, extra, weekend)) remaining--;
+    // Tam haftalar, kalan iş gününü aşmayacak kadar tek adımda atlanır.
+    const weeks = Math.floor((remaining - 1) / cal.workdaysPerWeek);
+    if (weeks > 0) {
+      const target = day + step * weeks * 7;
+      remaining -= step > 0 ? countWorkdays(day, target, cal) : countWorkdays(target - 1, day - 1, cal);
+      day = target;
+    } else {
+      day += step;
+      if (isWorkday(day, cal)) remaining--;
+    }
   }
+  const result = new Date(day * DAY_MS);
+  date.setFullYear(result.getUTCFullYear(), result.getUTCMonth(), result.getUTCDate());
   return date;
 }
 
@@ -227,18 +335,9 @@ export function addBusinessDays(input: DateInput, days: number, options: Busines
  * @example
  * businessDaysBetween("2026-11-27", "2026-12-04"); // 5
  */
-export function businessDaysBetween(start: DateInput, end: DateInput, options: BusinessDayOptions = {}): number {
-  const from = toDate(start);
-  const to = toDate(end);
-  const total = calendarDays(from, to);
-  if (total < 0) return -businessDaysBetween(to, from, options);
-  const extra = extraKeys(options);
-  const weekend = options.weekend ?? [0, 6];
-  const cursor = new Date(from.getFullYear(), from.getMonth(), from.getDate());
-  let count = 0;
-  for (let i = 0; i < total; i++) {
-    cursor.setDate(cursor.getDate() + 1);
-    if (isWorkday(cursor, extra, weekend)) count++;
-  }
-  return count;
+export function businessDaysBetween(start: DateInput, end: DateInput, options?: BusinessDayOptions): number {
+  const from = dayNumber(toDate(start));
+  const to = dayNumber(toDate(end));
+  const cal = calendar(options);
+  return from <= to ? countWorkdays(from, to, cal) : -countWorkdays(to, from, cal);
 }

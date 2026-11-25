@@ -12,7 +12,9 @@
     "validation",
     "dogrulama",
     "format",
-    "zero-dependency"
+    "zero-dependency",
+    "input-mask",
+    "react"
   ],
   "license": "MIT",
   "author": {
@@ -31,6 +33,14 @@
   "sideEffects": false,
   "engines": {
     "node": ">=18"
+  },
+  "peerDependencies": {
+    "react": ">=16.8"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
   },
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -156,6 +166,26 @@
         "default": "./dist/cjs/vehicle/index.js"
       }
     },
+    "./mask": {
+      "import": {
+        "types": "./dist/esm/mask/index.d.ts",
+        "default": "./dist/esm/mask/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/mask/index.d.ts",
+        "default": "./dist/cjs/mask/index.js"
+      }
+    },
+    "./react": {
+      "import": {
+        "types": "./dist/esm/react/index.d.ts",
+        "default": "./dist/esm/react/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/react/index.d.ts",
+        "default": "./dist/cjs/react/index.js"
+      }
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -167,8 +197,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "node --experimental-strip-types --no-warnings=ExperimentalWarning --test \"src/**/*.test.ts\"",
-    "test:coverage": "node --experimental-strip-types --no-warnings=ExperimentalWarning --test --experimental-test-coverage --test-coverage-exclude=\"src/**/*.test.ts\" --test-coverage-lines=95 --test-coverage-branches=90 --test-coverage-functions=95 \"src/**/*.test.ts\"",
+    "test": "node --experimental-strip-types --no-warnings=ExperimentalWarning --import ./test/react/register.mjs --test \"src/**/*.test.ts\"",
+    "test:coverage": "node --experimental-strip-types --no-warnings=ExperimentalWarning --import ./test/react/register.mjs --test --experimental-test-coverage --test-coverage-exclude=\"src/**/*.test.ts\" --test-coverage-lines=95 --test-coverage-branches=90 --test-coverage-functions=95 \"src/**/*.test.ts\"",
     "size": "node scripts/size.mjs",
     "check:package": "node scripts/check-package.mjs",
     "smoke": "node scripts/smoke.mjs && node scripts/smoke.cjs",

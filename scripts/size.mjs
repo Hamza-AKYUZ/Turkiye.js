@@ -8,18 +8,20 @@ import { fail, isRelative, ROOT, specifiers } from "./lib.mjs";
 // dist/esm altındaki giriş dosyası: bayt cinsinden üst sınır
 // Sınırlar, modülün kullandığı core dosyalarını da kapsar.
 const BUDGETS = {
-  "index.js": 16384,
-  "tckn/index.js": 2560,
+  "index.js": 20480,
+  "tckn/index.js": 3072,
   "vkn/index.js": 3072,
   "iban/index.js": 3072,
-  "phone/index.js": 3584,
-  "card/index.js": 3072,
-  "text/index.js": 4096,
+  "phone/index.js": 4096,
+  "card/index.js": 3584,
+  "text/index.js": 5120,
   "money/index.js": 3072,
   "address/index.js": 2560,
-  "date/index.js": 3072,
-  "company/index.js": 2048,
-  "vehicle/index.js": 4096,
+  "date/index.js": 4096,
+  "company/index.js": 2560,
+  "vehicle/index.js": 4608,
+  "mask/index.js": 9216,
+  "react/index.js": 10240,
 };
 
 function collect(file, seen = new Set()) {

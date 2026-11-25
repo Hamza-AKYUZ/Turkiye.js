@@ -7,10 +7,17 @@ import { fail, readJson, ROOT, walk } from "./lib.mjs";
 const pkg = readJson(join(ROOT, "package.json"));
 const errors = [];
 
-for (const field of ["dependencies", "peerDependencies", "optionalDependencies", "bundleDependencies"]) {
+for (const field of ["dependencies", "optionalDependencies", "bundleDependencies"]) {
   if (pkg[field] && Object.keys(pkg[field]).length > 0) {
     errors.push(`package.json "${field}" alanı boş olmalı.`);
   }
+}
+
+// Yalnız react alt yolu için isteğe bağlı react eş bağımlılığına izin verilir.
+const peers = Object.keys(pkg.peerDependencies ?? {});
+if (peers.some((name) => name !== "react")) errors.push('"peerDependencies" yalnız "react" içerebilir.');
+if (peers.includes("react") && pkg.peerDependenciesMeta?.react?.optional !== true) {
+  errors.push('"react" eş bağımlılığı isteğe bağlı (optional) olmalı.');
 }
 
 function targets(node, path = []) {

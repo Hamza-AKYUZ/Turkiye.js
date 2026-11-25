@@ -4,7 +4,7 @@ Bu proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
 ## [1.0.0] - 2026-11-26
 
-İlk kararlı sürüm.
+İlk kararlı sürüm. Node 14.13 ve üstü, Bun, Deno ve ES2020 destekleyen tarayıcılarda çalışır.
 
 ### Eklendi
 
@@ -24,7 +24,7 @@ Bu proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 - Her modül için `turkiye.js/<modül>` alt yolu.
 - Çekirdek (`core`): `Result` tipi, `ErrorCode` ve `ERROR_CODES`, `TurkiyeError`, `Brand` tipi, `setMessages` ve `resetMessages`, `StandardSchemaV1` arayüzü.
 - Proje altyapısı: ESM + CJS build, `node:test` testleri, boyut sınırı, paket kontrolleri ve CI.
-- `docs/` klasöründe her modül için doküman; örnek sonuçları her kontrolde derlenmiş pakette doğrulanır.
+- `docs/moduller/` altında her modül için doküman, `docs/kurulum/` altında Node.js, React, Next.js, Vue, Svelte, tarayıcı, React Native, Bun, Deno ve TypeScript kurulum rehberleri. Örnek sonuçları ve göreli bağlantılar her kontrolde doğrulanır.
 - `examples/` klasöründe Node, saf HTML ve React örnekleri.
 - `vectors/` klasöründe modül başına ortak test vektörleri.
 

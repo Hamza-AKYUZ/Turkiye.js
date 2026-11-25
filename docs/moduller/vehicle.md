@@ -1,3 +1,5 @@
+[Doküman](../README.md) / Modüller / **vehicle**
+
 # vehicle: Araç
 
 ```ts nocheck
@@ -68,5 +70,7 @@ vehicle.vin.validate("1M8GDM9AXKP04278I").code; // "INVALID_CHARS"
 Yazarken plaka biçimlemek için [PlateMask](./mask.md) kullanılır.
 
 ---
+
+[Doküman ana sayfası](../README.md) · [Tüm modüller](../README.md#modüller) · Önceki: [company](./company.md) · Sonraki: [mask](./mask.md)
 
 Türkiye.js bir [AkySoft](https://akysoft.com) ürünüdür.

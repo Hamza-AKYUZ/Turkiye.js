@@ -8,17 +8,17 @@
 //   karşılaştırılır. Açıklama içeren yorumlar karşılaştırılmaz.
 // - Örnekler ayrı bir vm bağlamında çalışır.
 import assert from "node:assert/strict";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 import vm from "node:vm";
-import { fail, ROOT } from "./lib.mjs";
+import { fail, ROOT, walk } from "./lib.mjs";
 
 const ESM = join(ROOT, "dist", "esm");
 const files = [join(ROOT, "README.md")];
 const docsDir = join(ROOT, "docs");
 if (existsSync(docsDir)) {
-  for (const name of readdirSync(docsDir).sort()) if (name.endsWith(".md")) files.push(join(docsDir, name));
+  for (const file of walk(docsDir).sort()) if (file.endsWith(".md")) files.push(file);
 }
 
 const moduleCache = new Map();
@@ -53,8 +53,20 @@ const errors = [];
 let checked = 0;
 let blocks = 0;
 
+let links = 0;
 for (const file of files) {
   const source = readFileSync(file, "utf8").replace(/\r\n/g, "\n");
+
+  // Göreli bağlantıların gösterdiği dosyalar var mı. Kod blokları atlanır.
+  const prose = source.replace(/^```[\s\S]*?^```/gm, "");
+  for (const match of prose.matchAll(/\]\(([^)\s]+)\)|href="([^"]+)"/g)) {
+    const target = match[1] ?? match[2];
+    if (/^(https?:|mailto:|#)/.test(target)) continue;
+    links++;
+    const path = join(dirname(file), decodeURIComponent(target.split("#")[0]));
+    if (!existsSync(path)) errors.push(`${relative(ROOT, file)}: kırık bağlantı ${target}`);
+  }
+
   const fence = /^```(\S*)([^\n]*)\n([\s\S]*?)^```/gm;
   for (const match of source.matchAll(fence)) {
     const [, lang, info, code] = match;
@@ -129,4 +141,4 @@ for (const file of files) {
 }
 
 if (errors.length > 0) fail(`Doküman örnekleri hatalı:\n  ${errors.join("\n  ")}`);
-console.log(`Doküman örnekleri doğrulandı: ${blocks} blok, ${checked} sonuç (${files.length} dosya)`);
+console.log(`Doküman örnekleri doğrulandı: ${blocks} blok, ${checked} sonuç, ${links} bağlantı (${files.length} dosya)`);

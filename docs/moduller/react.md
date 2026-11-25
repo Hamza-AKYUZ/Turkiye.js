@@ -1,3 +1,5 @@
+[Doküman](../README.md) / Modüller / **react**
+
 # react: useMask
 
 ```tsx
@@ -99,5 +101,7 @@ export function PhoneInput() {
 ```
 
 ---
+
+[Doküman ana sayfası](../README.md) · [Tüm modüller](../README.md#modüller) · Önceki: [mask](./mask.md)
 
 Türkiye.js bir [AkySoft](https://akysoft.com) ürünüdür.

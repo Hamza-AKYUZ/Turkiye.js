@@ -1,3 +1,5 @@
+[Doküman](../README.md) / Modüller / **text**
+
 # text: Türkçe metin
 
 ```ts nocheck
@@ -125,5 +127,7 @@ text.suffix("Kitap", "locative", { proper: false }); // "Kitapta"
 ```
 
 ---
+
+[Doküman ana sayfası](../README.md) · [Tüm modüller](../README.md#modüller) · Önceki: [card](./card.md) · Sonraki: [money](./money.md)
 
 Türkiye.js bir [AkySoft](https://akysoft.com) ürünüdür.

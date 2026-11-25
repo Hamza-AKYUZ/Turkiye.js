@@ -1,3 +1,5 @@
+[Doküman](../README.md) / Modüller / **address**
+
 # address: İl ve posta kodu
 
 ```ts nocheck
@@ -51,5 +53,7 @@ address.isValidPostalCode("99000"); // false
 ```
 
 ---
+
+[Doküman ana sayfası](../README.md) · [Tüm modüller](../README.md#modüller) · Önceki: [money](./money.md) · Sonraki: [date](./date.md)
 
 Türkiye.js bir [AkySoft](https://akysoft.com) ürünüdür.

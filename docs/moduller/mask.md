@@ -1,3 +1,5 @@
+[Doküman](../README.md) / Modüller / **mask**
+
 # mask: Yazarken format
 
 ```ts nocheck
@@ -131,5 +133,7 @@ class PostalCodeMask extends Mask {
 `clean` metnin her ön ekinde tutarlı sonuç vermelidir; imleç konumu buna göre hesaplanır. Ayraç karakterleri `separators` alanında tanımlanır (varsayılan boşluk).
 
 ---
+
+[Doküman ana sayfası](../README.md) · [Tüm modüller](../README.md#modüller) · Önceki: [vehicle](./vehicle.md) · Sonraki: [react](./react.md)
 
 Türkiye.js bir [AkySoft](https://akysoft.com) ürünüdür.

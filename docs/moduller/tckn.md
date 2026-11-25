@@ -1,3 +1,5 @@
+[Doküman](../README.md) / Modüller / **tckn**
+
 # tckn: TC Kimlik No
 
 ```ts nocheck
@@ -61,5 +63,7 @@ tckn.kind(tckn.generate({ foreign: true })); // "foreign"
 Tekrarlanabilir test verisi için `random` seçeneğine 0 ile 1 arasında sayı döndüren bir üreteç verilebilir.
 
 ---
+
+[Doküman ana sayfası](../README.md) · [Tüm modüller](../README.md#modüller) · Sonraki: [vkn](./vkn.md)
 
 Türkiye.js bir [AkySoft](https://akysoft.com) ürünüdür.

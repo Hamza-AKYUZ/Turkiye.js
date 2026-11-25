@@ -1,3 +1,5 @@
+[Doküman](../README.md) / Modüller / **date**
+
 # date: Tarih ve iş günü
 
 ```ts nocheck
@@ -123,5 +125,7 @@ Kurallar:
 - Haftanın her günü hafta sonu verilirse ya da sonuç 1-9999 yılları dışına çıkarsa `RANGE` hatası verilir.
 
 ---
+
+[Doküman ana sayfası](../README.md) · [Tüm modüller](../README.md#modüller) · Önceki: [address](./address.md) · Sonraki: [company](./company.md)
 
 Türkiye.js bir [AkySoft](https://akysoft.com) ürünüdür.

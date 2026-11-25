@@ -1,3 +1,5 @@
+[Doküman](../README.md) / Modüller / **company**
+
 # company: Şirket
 
 ```ts nocheck
@@ -30,5 +32,7 @@ company.mersis.validate("012345678901234a").code; // "INVALID_CHARS"
 Vergi Kimlik No için [vkn](./vkn.md) modülü kullanılır.
 
 ---
+
+[Doküman ana sayfası](../README.md) · [Tüm modüller](../README.md#modüller) · Önceki: [date](./date.md) · Sonraki: [vehicle](./vehicle.md)
 
 Türkiye.js bir [AkySoft](https://akysoft.com) ürünüdür.

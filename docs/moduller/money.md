@@ -1,3 +1,5 @@
+[Doküman](../README.md) / Modüller / **money**
+
 # money: Para
 
 ```ts nocheck
@@ -81,5 +83,7 @@ Sonuçlar kuruşa yuvarlanır. Oran yüzde olarak verilir (20, 10, 1); negatif o
 Yazarken tutar biçimlemek için [MoneyMask](./mask.md) kullanılır.
 
 ---
+
+[Doküman ana sayfası](../README.md) · [Tüm modüller](../README.md#modüller) · Önceki: [text](./text.md) · Sonraki: [address](./address.md)
 
 Türkiye.js bir [AkySoft](https://akysoft.com) ürünüdür.

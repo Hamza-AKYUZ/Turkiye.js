@@ -1,3 +1,5 @@
+[Doküman](../README.md) / Modüller / **card**
+
 # card: Kart numarası
 
 ```ts nocheck
@@ -57,5 +59,7 @@ Kart numaraları hassas veridir. `mask` geçersiz girdide hiçbir rakamı göste
 Pakette banka (BIN) listesi yoktur; bu liste sık değiştiği için kapsam dışıdır.
 
 ---
+
+[Doküman ana sayfası](../README.md) · [Tüm modüller](../README.md#modüller) · Önceki: [phone](./phone.md) · Sonraki: [text](./text.md)
 
 Türkiye.js bir [AkySoft](https://akysoft.com) ürünüdür.

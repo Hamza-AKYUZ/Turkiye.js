@@ -1,3 +1,5 @@
+[Doküman](../README.md) / Modüller / **vkn**
+
 # vkn: Vergi Kimlik No
 
 ```ts nocheck
@@ -49,5 +51,7 @@ vkn.isValid(vkn.generate()); // true
 `generate` yalnız test ve örnek veri içindir.
 
 ---
+
+[Doküman ana sayfası](../README.md) · [Tüm modüller](../README.md#modüller) · Önceki: [tckn](./tckn.md) · Sonraki: [iban](./iban.md)
 
 Türkiye.js bir [AkySoft](https://akysoft.com) ürünüdür.

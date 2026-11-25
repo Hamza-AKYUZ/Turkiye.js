@@ -1,3 +1,5 @@
+[Doküman](../README.md) / Modüller / **phone**
+
 # phone: Telefon numarası
 
 ```ts nocheck
@@ -56,5 +58,7 @@ phone.validate("0532123456").code; // "FORMAT"
 Alan kodu tablosu 81 ili kapsar; İstanbul'un iki kodu (212 ve 216) vardır.
 
 ---
+
+[Doküman ana sayfası](../README.md) · [Tüm modüller](../README.md#modüller) · Önceki: [iban](./iban.md) · Sonraki: [card](./card.md)
 
 Türkiye.js bir [AkySoft](https://akysoft.com) ürünüdür.

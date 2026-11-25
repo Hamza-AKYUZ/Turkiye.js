@@ -1,6 +1,7 @@
 // Derlenmiş paketi ESM olarak yükler ve CJS çıktısıyla karşılaştırır.
-import assert from "node:assert/strict";
-import { createRequire } from "node:module";
+// Node 14 ile uyum için "node:" öneki ve "assert/strict" alt yolu kullanılmaz.
+import { strict as assert } from "assert";
+import { createRequire } from "module";
 import * as esm from "turkiye.js";
 import * as addressModule from "turkiye.js/address";
 import * as cardModule from "turkiye.js/card";

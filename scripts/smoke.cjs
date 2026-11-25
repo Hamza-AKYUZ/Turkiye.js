@@ -1,5 +1,6 @@
 // Derlenmiş paketi CommonJS olarak yükler.
-const assert = require("node:assert/strict");
+// Node 14 ile uyum için "node:" öneki ve "assert/strict" alt yolu kullanılmaz.
+const assert = require("assert").strict;
 const lib = require("turkiye.js");
 const tckn = require("turkiye.js/tckn");
 

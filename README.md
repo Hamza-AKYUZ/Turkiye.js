@@ -146,8 +146,6 @@ npm run check
 | `npm run example` | Node örneğini çalıştırır |
 | `npm run serve` | Tarayıcı örneğini http://127.0.0.1:5173 adresinde açar |
 
-Tasarım kararları ve teknik şartname: [SPEC.md](./SPEC.md).
-
 ## English
 
 Turkiye.js provides validation, formatting and text utilities for Türkiye: national ID (TCKN), tax ID (VKN), IBAN, phone, card, money, address, date, vehicle plate and Turkish text rules. Zero dependencies, fully typed, tree-shakeable, works in every JavaScript runtime. Full documentation is in Turkish: [docs](./docs/README.md).
